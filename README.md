@@ -1,8 +1,44 @@
 # DSA Problems
 
 ## Two Pointers
-Triangle Numbers
 
+### Valid Triangle Number (Medium)
+
+**Description**  
+Count the number of triplets in an array that can form a valid triangle.
+
+**The Rule:**  
+Three sides `a`, `b`, and `c` form a triangle if:
+> **a + b > c** (where `c` is the longest side)
+
+---
+
+### 💡 The Strategy: Sort & Shrink
+
+By sorting the array, we only need to check one condition: **Smallest + Middle > Largest**.
+
+#### The Step-by-Step Logic:
+1.  **Sort the array:** This helps us identify the largest side (`c`) easily.
+2.  **Fix the Largest Side:** We loop backwards through the array. The current number is our potential longest side `c`.
+3.  **Two Pointers:** For each `c`, we place:
+    *   `left` at the very beginning (the smallest side).
+    *   `right` just before `c` (the middle side).
+4.  **The Shortcut:**
+    *   **If `nums[left] + nums[right] > c`:** 
+        Since the array is sorted, if the smallest side (`left`) works, then **every side between `left` and `right`** will also work with `right` and `c`!
+        *   We add them all at once: `count += (right - left)`.
+        *   Move `right` down to try a different middle side.
+    *   **If `nums[left] + nums[right] <= c`:**
+        The sum is too small. Move `left` up to increase the sum.
+
+**Example:** `nums = [11, 4, 9, 6, 15, 18]`
+1.  Sorted: `[4, 6, 9, 11, 15, 18]`
+2.  Fix `c = 18`. `left = 4`, `right = 15`.
+3.  `4 + 15 = 19`. `19 > 18`? **Yes!**
+4.  Everything between index 0 and 4 works. Triplets: `(4,15,18), (6,15,18), (9,15,18), (11,15,18)`.
+5.  `count += 4`.
+
+---
 ## Sliding Window
 
 ### Max Points You Can Obtain From Cards (Medium)
