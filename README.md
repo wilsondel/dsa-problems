@@ -122,6 +122,34 @@ The best tool for this is a **Min-Heap**.
 **Why use a Min-Heap?**  
 A Min-Heap makes it very fast to see the smallest element ($O(1)$) and fast to replace it ($O(\log k)$). This is much more efficient than sorting the whole array ($O(n \log n)$) when $k$ is small.
 
+---
+## Greedy
+
+### Best Time to Buy and Sell Stock (Easy)
+
+**Description**  
+You are given an array `prices` where `prices[i]` is the price of a given stock on the $i^{th}$ day. You want to maximize your profit by choosing a **single day** to buy one stock and choosing a **different day in the future** to sell that stock.
+
+**Example:**
+*   `prices = [7, 1, 5, 3, 6, 4]`
+*   **Output:** `5`
+*   **Explanation:** Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = $6-1 = 5$.
+
+---
+
+### 💡 The Strategy: One Pass (Greedy)
+
+The simplest way to solve this is to imagine you are walking through the timeline of prices and keeping track of the best deal you've seen so far.
+
+#### The Step-by-Step Logic:
+1.  **Look for the Floor:** As you go through the prices, keep track of the **lowest price** you have encountered so far (`min_price`).
+2.  **Calculate the "What If":** For every new price you see, ask yourself: *"If I bought at my lowest price and sold today, how much money would I make?"*
+3.  **Remember the Record:** Keep track of the **highest profit** you've calculated so far.
+4.  **Keep Moving:** You only need to look at each price once!
+
+**Why is this "Greedy"?**  
+At every step, you are making the best possible decision based on what you've seen (updating the minimum price) and recording the best possible outcome found so far (maximum profit).
+
 
 
 
