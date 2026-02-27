@@ -91,6 +91,37 @@ To get the **Maximum** score for the cards we pick, we just need to find the **M
 
 This transforms a complex "pick from both ends" problem into a simple "find the smallest middle" problem.
 
+---
+## Heap
+
+### Kth Largest Element in an Array (Medium)
+
+**Description**  
+Find the **k-th** largest element in an unsorted array. Note that it is the k-th largest element in the sorted order, not the k-th distinct element.
+
+**Example:**
+*   `nums = [3, 2, 1, 5, 6, 4]`, `k = 2`
+*   **Output:** `5`
+
+---
+
+### 💡 The Strategy: Min-Heap of Size K
+
+To find the $k$-th largest element efficiently, we don't need to sort the entire array. We only need to keep track of the **top $k$** largest numbers we've seen.
+
+The best tool for this is a **Min-Heap**.
+
+#### The Step-by-Step Logic:
+1.  **Maintain a small "club":** We create a Min-Heap that will only hold **k** elements.
+2.  **Fill the heap:** Add numbers from the array one by one.
+3.  **Keep the strongest:** If the heap already has `k` elements and we find a new number that is **larger** than the smallest one in our heap (the one at the top):
+    *   We remove the smallest element.
+    *   We add the new, larger number.
+4.  **The Result:** After looking at every number, the heap contains the $k$ largest elements of the array. Since it's a Min-Heap, the **smallest** of these $k$ elements is sitting right at the top. That smallest element is exactly the $k$-th largest!
+
+**Why use a Min-Heap?**  
+A Min-Heap makes it very fast to see the smallest element ($O(1)$) and fast to replace it ($O(\log k)$). This is much more efficient than sorting the whole array ($O(n \log n)$) when $k$ is small.
+
 
 
 
