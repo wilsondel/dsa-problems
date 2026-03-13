@@ -86,7 +86,7 @@ To get the **Maximum** score for the cards we pick, we just need to find the **M
 ### The Algorithm
 1.  Calculate the `total_sum` of all cards.
 2.  Use a **fixed-length sliding window** of size `n - k`.
-3.  Slide this window across the array to find the **minimum window sum**.
+3.  Slide this window across the array to find the **min window sum**.
 4.  `Max Score = total_sum - min_window_sum`.
 
 This transforms a complex "pick from both ends" problem into a simple "find the smallest middle" problem.
@@ -150,7 +150,36 @@ The simplest way to solve this is to imagine you are walking through the timelin
 **Why is this "Greedy"?**  
 At every step, you are making the best possible decision based on what you've seen (updating the minimum price) and recording the best possible outcome found so far (maximum profit).
 
+---
+## Dynamic Programming
 
+### Unique Paths (Medium)
 
+**Description**  
+You are given a robot that starts at the top-left corner of a grid with dimensions **m x n**. The robot can only move either down or right at any point in time. The goal is for the robot to reach the bottom-right corner of the grid.
 
+Given the dimensions of the board **m** and **n**, write a function to return the number of unique paths the robot can take to reach the bottom-right corner.
 
+**Example:**
+*   `m = 3`, `n = 2`
+*   **Output:** `3`
+*   **Explanation:** From the top-left corner, there are a total of 3 ways to reach the bottom-right corner:
+    1. Right -> Down -> Down
+    2. Down -> Down -> Right
+    3. Down -> Right -> Down
+
+---
+
+### 💡 The Strategy: Top-Down DP (Memoization)
+
+This problem can be broken down into smaller sub-problems. To reach any cell `(i, j)`, you must have come from either the cell above it `(i-1, j)` or the cell to its left `(i, j-1)`.
+
+#### The Step-by-Step Logic:
+1.  **Base Case:** If you are in the first row (`m=1`) or the first column (`n=1`), there is only **1** way to reach any cell (by going straight right or straight down).
+2.  **Recursive Relation:** The number of ways to reach `(m, n)` is the sum of the ways to reach the cell above it and the cell to its left:
+    > `paths(m, n) = paths(m-1, n) + paths(m, n-1)`
+3.  **Memoization:** To avoid recalculating the same paths multiple times (which would be very slow), we store for each `(m, n)` in a **dictionary (`memo`)**.
+4.  **Lookup:** Before calculating a path for `(m, n)`, check if it is already in the `memo`. If it is, return it immediately!
+
+**Why use Dynamic Programming?**  
+A simple recursive solution would have an exponential time complexity of $O(2^{m+n})$. With **Memoization**, we calculate each cell's unique paths exactly once, reducing the complexity to $O(m \times n)$, which is significantly faster for larger grids.

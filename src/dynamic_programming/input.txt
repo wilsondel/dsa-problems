@@ -1,0 +1,2 @@
+m = 2, n = 3, output = 3
+m = 3, n = 7, output = 28
