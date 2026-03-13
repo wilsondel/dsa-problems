@@ -183,3 +183,34 @@ This problem can be broken down into smaller sub-problems. To reach any cell `(i
 
 **Why use Dynamic Programming?**  
 A simple recursive solution would have an exponential time complexity of $O(2^{m+n})$. With **Memoization**, we calculate each cell's unique paths exactly once, reducing the complexity to $O(m \times n)$, which is significantly faster for larger grids.
+
+---
+
+### Distinct Subsequences (Hard)
+
+**Description**  
+Given two strings `s` and `t`, return the number of distinct subsequences of `s` which equals `t`.
+
+**Example:**
+*   `s = "rabbbit"`, `t = "rabbit"`
+*   **Output:** `3`
+*   **Explanation:** There are 3 ways to generate "rabbit" from `s` by picking different 'b's.
+
+---
+
+### 💡 The Strategy: Decision Tree with Memoization
+
+To solve this, we explore all possible ways to form `t` from `s` using a recursive approach (DFS). At each step, we decide whether to include a character from `s` in our subsequence.
+
+#### The Step-by-Step Logic:
+1.  **The Goal:** We use two pointers, `i` for string `s` and `j` for string `t`.
+2.  **Base Cases:**
+    *   If `j` reaches the end of `t`, we found a valid subsequence! Return **1**.
+    *   If `i` reaches the end of `s` but `j` hasn't finished `t`, this path failed. Return **0**.
+3.  **The Decision:**
+    *   **Always skip:** We can always choose to skip `s[i]` and try to find `t[j]` later in `s`.
+    *   **Match & Include:** If `s[i] == t[j]`, we have an *additional* option: include `s[i]` and move both pointers forward (`i+1`, `j+1`).
+4.  **Memoization:** We store the results of `(i, j)` in a `cache` dictionary to avoid repeating the same sub-problems.
+
+**Why use this approach?**  
+Without memoization, the number of paths grows exponentially. By caching the results, we ensure that each pair of indices `(i, j)` is computed only once, leading to a time complexity of $O(n \times m)$, where $n$ and $m$ are the lengths of the strings.

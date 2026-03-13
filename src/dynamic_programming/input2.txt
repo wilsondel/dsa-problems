@@ -1,0 +1,2 @@
+s = "rabbbit", t = "rabbit", output = 3
+s = "babgbag", t = "bag", output = 5
