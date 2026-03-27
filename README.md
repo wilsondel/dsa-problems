@@ -214,3 +214,36 @@ To solve this, we explore all possible ways to form `t` from `s` using a recursi
 
 **Why use this approach?**  
 Without memoization, the number of paths grows exponentially. By caching the results, we ensure that each pair of indices `(i, j)` is computed only once, leading to a time complexity of $O(n \times m)$, where $n$ and $m$ are the lengths of the strings.
+
+---
+## Breadth-First Search
+
+### Rightmost Node (Medium)
+
+**Description**  
+Given the root of a binary tree, return the rightmost node at each level of the tree. The output should be a list containing only the values of those nodes.
+
+**Example 1:**
+*   **Input:** `[1, 3, 4, null, 2, 7, null, 8]`
+*   **Output:** `[1, 4, 7, 8]`
+
+**Example 2:**
+*   **Input:** `[1, 2, 5, 3, null, null, 4]`
+*   **Output:** `[1, 5, 3, 4]`
+
+---
+
+### 💡 The Strategy: Level-Order Traversal (BFS)
+
+To find the rightmost node at each level, we explore the tree level by level. At each level, the last node we visit is the one that would be visible from the right.
+
+#### The Step-by-Step Logic:
+1.  **Queue for Traversal:** Use a queue to keep track of nodes to visit, starting with the `root`.
+2.  **Level by Level:** While the queue is not empty:
+    *   Record the number of nodes at the current level (`level_size`).
+    *   Iterate through these nodes one by one.
+3.  **Identify the Rightmost:** For each level, the **last node** in the iteration is the rightmost node. Add its value to our result list.
+4.  **Add Children:** As we visit each node, add its `left` and `right` children (if they exist) to the queue for the next level.
+
+**Why use BFS?**  
+Breadth-First Search is ideal here because it naturally groups nodes by their depth. By processing an entire level before moving to the next, we can easily identify which node is at the "end" of that level.
