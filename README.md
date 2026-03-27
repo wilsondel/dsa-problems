@@ -253,9 +253,9 @@ Breadth-First Search is ideal here because it naturally groups nodes by their de
 ### Bus Routes (Hard)
 
 **Description**  
-You are given a 2D-integer array `routes` representing bus routes where `routes[i]` is a list of stops that the $i^{th}$ bus makes. You are also given two integers `source` and `target`, representing the starting bus stop and the destination bus stop.
+You are given a 2D-integer array routes representing bus routes where routes[i] is a list of stops that the i-th bus makes. For example, if routes[0] = [3, 8, 9], it means the first bus goes through stops 3, 8, 9, 3, 8, 9, continuously.
 
-Find the minimum number of buses you need to take to travel from `source` to `target`. Return -1 if it is not possible.
+You are also given two integers source and target, representing the starting bus stop and the destination bus stop, respectively. Write a function that takes in routes, source, and target as input, and returns the minimum number of buses you need to take to travel from source to target. Return -1 if it is not possible to reach the destination.
 
 **Example 1:**
 *   **Input:** `routes = [[3, 8, 9], [5, 6, 8], [1, 7, 10]]`, `source = 3`, `target = 6`
