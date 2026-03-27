@@ -247,3 +247,41 @@ To find the rightmost node at each level, we explore the tree level by level. At
 
 **Why use BFS?**  
 Breadth-First Search is ideal here because it naturally groups nodes by their depth. By processing an entire level before moving to the next, we can easily identify which node is at the "end" of that level.
+
+---
+
+### Bus Routes (Hard)
+
+**Description**  
+You are given a 2D-integer array `routes` representing bus routes where `routes[i]` is a list of stops that the $i^{th}$ bus makes. You are also given two integers `source` and `target`, representing the starting bus stop and the destination bus stop.
+
+Find the minimum number of buses you need to take to travel from `source` to `target`. Return -1 if it is not possible.
+
+**Example 1:**
+*   **Input:** `routes = [[3, 8, 9], [5, 6, 8], [1, 7, 10]]`, `source = 3`, `target = 6`
+*   **Output:** `2`
+*   **Explanation:** Take the first bus from stop 3 to stop 8, then take the second bus from stop 8 to stop 6.
+
+**Example 2:**
+*   **Input:** `routes = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]`, `source = 1`, `target = 12`
+*   **Output:** `-1`
+
+---
+
+### 💡 The Strategy: BFS on Routes
+
+To find the minimum number of buses, we treat each **bus route** as a node in a graph. Two buses are connected if they share a common stop.
+
+#### The Step-by-Step Logic:
+1.  **Map Stops to Buses:** Create a dictionary where each bus stop points to a list of all buses (routes) that pass through it.
+2.  **BFS Queue:** Start with all buses that pass through the `source` stop. These are your "level 1" buses.
+3.  **Avoid Redundancy:** Keep track of **visited buses** to ensure we don't take the same bus twice.
+4.  **Expand the Search:** For each bus in the current level:
+    *   Check all the stops it makes.
+    *   If any stop is the `target`, you've found the minimum! Return the current bus count.
+    *   If not, for each stop, find all *other* buses passing through it that you haven't taken yet, and add them to the queue for the next level.
+5.  **Fail Case:** If the queue becomes empty and you haven't reached the target, return -1.
+
+**Why use this approach?**  
+By performing BFS on **buses** instead of individual stops, we significantly reduce the size of the graph. Since we want the minimum number of *buses*, each level in our BFS directly corresponds to one bus ride, ensuring we find the shortest path in terms of transfers.
+
