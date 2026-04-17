@@ -285,3 +285,41 @@ To find the minimum number of buses, we treat each **bus route** as a node in a 
 **Why use this approach?**  
 By performing BFS on **buses** instead of individual stops, we significantly reduce the size of the graph. Since we want the minimum number of *buses*, each level in our BFS directly corresponds to one bus ride, ensuring we find the shortest path in terms of transfers.
 
+---
+## Segment Tree
+
+### Range Sum Query - Mutable (Medium)
+
+**Description**  
+Given an integer array `nums`, handle multiple queries of the following types:
+*   **Update** the value of an element in `nums`.
+*   **Calculate the sum** of the elements of `nums` between indices `left` and `right` inclusive.
+
+Implement the `NumArray` class with `update(index, val)` and `sumRange(left, right)`.
+
+**Example:**
+*   **Input:** `nums = [1, 3, 5]`
+*   `sumRange(0, 2)` → `9` (1 + 3 + 5)
+*   `update(1, 2)` → `nums = [1, 2, 5]`
+*   `sumRange(0, 2)` → `8` (1 + 2 + 5)
+
+---
+
+### 💡 The Strategy: Segment Tree
+
+A naive approach (plain array) gives $O(1)$ updates but $O(n)$ per range query, which is too slow when there are many queries. A **Segment Tree** is a binary tree where each node stores the **sum of a range** of the array, allowing both operations in $O(\log n)$.
+
+#### The Step-by-Step Logic:
+1.  **Build the Tree (Recursive):** Each node represents a range `[start, end]`.
+    *   If `start == end`, it's a **leaf** storing `nums[start]`.
+    *   Otherwise, split the range at `mid = (start + end) // 2` and recurse into left and right children.
+    *   The node's value is the **sum of its two children**.
+2.  **Update an Index:** Navigate from the root down to the leaf that contains `index`, update its value, and **recalculate the sums** of all ancestors on the way back up.
+3.  **Query a Range `[left, right]`:** At each node, check the relationship between the node's range and the query range:
+    *   **Fully outside:** return `0` (nothing to add).
+    *   **Fully inside:** return the node's stored sum (already precomputed).
+    *   **Partial overlap:** recurse into both children and sum the results.
+
+**Why use a Segment Tree?**  
+Because both **update** and **sumRange** operate in $O(\log n)$, handling up to $3 \times 10^4$ mixed queries efficiently. A plain array would degrade to $O(n)$ per query, and a prefix-sum approach would make `sumRange` $O(1)$ but `update` $O(n)$ — the Segment Tree balances both operations.
+
