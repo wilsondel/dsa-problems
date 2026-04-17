@@ -323,3 +323,36 @@ A naive approach (plain array) gives $O(1)$ updates but $O(n)$ per range query, 
 **Why use a Segment Tree?**  
 Because both **update** and **sumRange** operate in $O(\log n)$, handling up to $3 \times 10^4$ mixed queries efficiently. A plain array would degrade to $O(n)$ per query, and a prefix-sum approach would make `sumRange` $O(1)$ but `update` $O(n)$ — the Segment Tree balances both operations.
 
+---
+
+### Count of Smaller Numbers After Self (Hard)
+
+**Description**  
+Given an integer array `nums`, return an array `counts` where `counts[i]` is the number of elements **smaller than `nums[i]`** that appear **to the right** of `i`.
+
+**Example:**
+*   **Input:** `nums = [5, 2, 6, 1]`
+*   **Output:** `[2, 1, 1, 0]`
+*   **Explanation:**
+    *   To the right of `5` are `[2, 6, 1]` → 2 smaller (`2` and `1`).
+    *   To the right of `2` is `[6, 1]` → 1 smaller (`1`).
+    *   To the right of `6` is `[1]` → 1 smaller.
+    *   To the right of `1` is `[]` → 0.
+
+---
+
+### 💡 The Strategy: Segment Tree Indexed by Value
+
+Instead of indexing the Segment Tree by **position** (like in Range Sum Query), we index it by **value**. Each leaf counts **how many times a value has appeared so far**. Then we traverse the array from **right to left** so that, by the time we process `nums[i]`, the tree already contains every element to its right.
+
+#### The Step-by-Step Logic:
+1.  **Shift the values:** Since `nums[i]` can be negative (`-10^4 ≤ nums[i] ≤ 10^4`), add an `OFFSET = 10^4` so every value lands in `[0, 20000]`. Now they can index a Segment Tree.
+2.  **Build an empty Segment Tree** of size `20001` where each leaf will count occurrences of that value.
+3.  **Traverse the array from right to left.** For each `nums[i]`:
+    *   **Query** the range `[0, shifted_value - 1]` — this counts how many **smaller** values are already in the tree. That is `counts[i]`.
+    *   **Update** position `shifted_value` by `+1` — we register that this value has been seen.
+4.  **Return `counts`.**
+
+**Why use this approach?**  
+A brute-force solution is $O(n^2)$: for each `i`, scan everything to its right. With $n \leq 10^5$, that's up to $10^{10}$ operations → **TLE**. The Segment Tree reduces each query and update to $O(\log V)$ where $V$ is the value range, giving an overall complexity of $O(n \log V)$. It reuses the **exact same Segment Tree structure** as Range Sum Query — only the *interpretation* changes: leaves store **counts** instead of values, and we index by **value** instead of by **position**.
+
