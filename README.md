@@ -286,6 +286,72 @@ To find the minimum number of buses, we treat each **bus route** as a node in a 
 By performing BFS on **buses** instead of individual stops, we significantly reduce the size of the graph. Since we want the minimum number of *buses*, each level in our BFS directly corresponds to one bus ride, ensuring we find the shortest path in terms of transfers.
 
 ---
+## Binary Indexed Tree (Fenwick Tree)
+
+### Count Number of Teams (Medium)
+
+**Description**  
+Given an array `rating` of `n` soldiers where all ratings are unique, return the number of teams of 3 soldiers `(i, j, k)` with `i < j < k` such that either:
+*   `rating[i] < rating[j] < rating[k]` (ascending), or
+*   `rating[i] > rating[j] > rating[k]` (descending).
+
+**Example:**
+*   **Input:** `rating = [2, 5, 3, 4, 1]`
+*   **Output:** `3`
+*   **Explanation:** Teams are `(2,3,4)`, `(5,4,1)`, and `(5,3,1)`.
+
+---
+
+### 💡 The Strategy: BIT for Left/Right Counts
+
+For each soldier `j` (as the middle element), we independently count how many elements to its left are smaller (`left_smaller`) and larger (`left_larger`), and similarly to its right (`right_smaller`, `right_larger`). The contribution of `j` as the middle is:
+
+> `left_smaller[j] × right_larger[j]`  (ascending teams) + `left_larger[j] × right_smaller[j]`  (descending teams)
+
+#### The Step-by-Step Logic:
+1.  **BIT indexed by rating value** (1 to 10^5, all unique).
+2.  **Left pass (left → right):** Before inserting `rating[j]`:
+    *   `left_smaller[j]` = `query(rating[j] - 1)` — count of ratings already inserted that are smaller.
+    *   `left_larger[j]` = `j - query(rating[j])` — elements inserted so far minus those ≤ `rating[j]`.
+    *   Then insert `rating[j]`.
+3.  **Right pass (right → left):** Same idea with a fresh BIT, computing `right_smaller` and `right_larger`.
+4.  **Sum contributions** of every `j`.
+
+**Why use a BIT?**  
+A brute-force $O(n^2)$ approach that, for each `j`, scans left and right would TLE for $n = 10^5$. The BIT reduces each left/right count to $O(\log M)$ where $M = 10^5$, giving overall $O(n \log M)$. The key difference from Count of Smaller Numbers After Self: here we index by **value** but make **two passes** to get both directions simultaneously.
+
+---
+
+### Reverse Pairs (Hard)
+
+**Description**  
+Given an integer array `nums`, return the number of **reverse pairs**: pairs `(i, j)` with `i < j` and `nums[i] > 2 × nums[j]`.
+
+**Example:**
+*   **Input:** `nums = [1, 3, 2, 3, 1]`
+*   **Output:** `2`
+*   **Explanation:** The pairs are `(3, 1)` at indices `(1, 4)` and `(3, 1)` at indices `(3, 4)`.
+
+---
+
+### 💡 The Strategy: BIT with Coordinate Compression
+
+The condition `nums[i] > 2 × nums[j]` prevents direct indexing because the query threshold `nums[i]/2` may not exist as a value in the array. We use **coordinate compression**: replace actual values with dense ranks, then use `bisect` to translate a threshold into a prefix rank count.
+
+#### The Key Trick: Threshold Formula
+We want to count, for each `nums[i]`, how many elements to its right satisfy `2x < nums[i]`, i.e., `x ≤ ⌊(nums[i] − 1) / 2⌋`. This floor formula handles both positive and negative integers correctly (Python's floor division rounds toward negative infinity).
+
+#### The Step-by-Step Logic:
+1.  **Coordinate compression:** Sort and deduplicate `nums` → `sorted_vals`. Map each value to a 1-based rank.
+2.  **Traverse right to left.** For each `nums[i]`:
+    *   **Query:** `threshold = (nums[i] - 1) // 2`. Use `bisect_right(sorted_vals, threshold)` to find how many compressed values satisfy `x ≤ threshold`. Query the BIT up to that rank.
+    *   **Update:** insert `rank[nums[i]]` into the BIT.
+3.  **Return the total count.**
+
+**Why coordinate compression?**  
+`nums[i]` can reach ±2³¹, so a direct BIT indexed by value would need ~4 × 10⁹ cells — impractical. Compression maps only the `n` distinct values to ranks `[1..n]`, giving a BIT of size `n`. Unlike Count of Smaller Numbers After Self (where the query threshold is simply `nums[i] - 1`), here the multiplicative condition forces a non-trivial threshold that isn't guaranteed to be in `sorted_vals`, which is why `bisect` is essential.
+
+---
 ## Segment Tree
 
 ### Range Sum Query - Mutable (Medium)
