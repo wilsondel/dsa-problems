@@ -8,21 +8,21 @@ from typing import List
 # ============================================================
 # BIT - Reverse Pairs
 # ============================================================
-# Contamos pares (i, j) con i < j y nums[i] > 2 * nums[j].
+# Count pairs (i, j) with i < j and nums[i] > 2 * nums[j].
 #
-# Recorremos de DERECHA a IZQUIERDA. Para cada nums[i],
-# consultamos cuántos elementos ya en el BIT satisfacen
-# 2x < nums[i], es decir x <= (nums[i] - 1) // 2.
+# Traverse RIGHT to LEFT. For each nums[i], query how many
+# elements already in the BIT satisfy 2x < nums[i],
+# i.e. x <= (nums[i] - 1) // 2.
 #
-# Como los valores pueden ser negativos y hasta ±2^31,
-# usamos COMPRESIÓN DE COORDENADAS:
-#   sorted_vals: valores únicos de nums, ordenados
-#   rank[v]:     posición 1-based de v en sorted_vals
+# Values can be negative and up to ±2^31, so we use
+# COORDINATE COMPRESSION:
+#   sorted_vals: unique values of nums, sorted
+#   rank[v]:     1-based position of v in sorted_vals
 #
-# La consulta usa bisect_right para traducir el threshold
-# a un rango de ranks sin necesidad de un BIT gigante.
+# The query uses bisect_right to translate the threshold
+# into a rank range, avoiding a huge BIT.
 #
-# Complejidad: O(n log n) — compresión + pasada BIT.
+# Complexity: O(n log n) — compression + BIT pass.
 # ============================================================
 
 
@@ -47,8 +47,8 @@ def reversePairs(nums: List[int]) -> int:
 
     count = 0
     for num in reversed(nums):
-        # queremos x tales que 2x < num, i.e. x <= (num-1)//2
-        # bisect_right da el primer rank cuyo valor > threshold
+        # find x such that 2x < num, i.e. x <= (num-1)//2
+        # bisect_right returns the first rank whose value > threshold
         threshold = (num - 1) // 2
         r = bisect.bisect_right(sorted_vals, threshold)
         count += query(r)

@@ -7,19 +7,19 @@ from typing import List
 # ============================================================
 # BIT - Count Number of Teams
 # ============================================================
-# Para cada soldado j (elemento del medio), contamos:
-#   left_smaller[j]:  elementos a su IZQUIERDA con rating menor
-#   left_larger[j]:   elementos a su IZQUIERDA con rating mayor
-#   right_smaller[j]: elementos a su DERECHA  con rating menor
-#   right_larger[j]:  elementos a su DERECHA  con rating mayor
+# For each soldier j (as the middle element), we count:
+#   left_smaller[j]:  elements to its LEFT  with a lower rating
+#   left_larger[j]:   elements to its LEFT  with a higher rating
+#   right_smaller[j]: elements to its RIGHT with a lower rating
+#   right_larger[j]:  elements to its RIGHT with a higher rating
 #
-# Aporte de j como elemento del medio:
-#   ascendente:  left_smaller[j] * right_larger[j]
-#   descendente: left_larger[j]  * right_smaller[j]
+# Contribution of j as the middle element:
+#   ascending:  left_smaller[j] * right_larger[j]
+#   descending: left_larger[j]  * right_smaller[j]
 #
-# El BIT está indexado por RATING (1..10^5, todos únicos).
-# Dos pasadas: izquierda→derecha y derecha→izquierda.
-# Complejidad: O(n log M) donde M = 10^5.
+# BIT is indexed by RATING value (1..10^5, all unique).
+# Two passes: left→right and right→left.
+# Complexity: O(n log M) where M = 10^5.
 # ============================================================
 
 MAX_RATING = 100000

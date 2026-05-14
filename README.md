@@ -290,101 +290,114 @@ By performing BFS on **buses** instead of individual stops, we significantly red
 
 ### What is a BIT?
 
-Imagine you have a list of numbers and you constantly need to:
-1. **Update** the value at a position.
-2. **Query the sum** of a range of positions.
+#### The analogy: a classroom of students collecting candy
 
-With a plain array, updating is O(1) but summing a range is O(n). A BIT makes **both operations O(log n)**.
+Picture a classroom with 8 students standing in a line, each holding a jar. Your teacher asks two things constantly:
+- "Add 3 candies to student 5's jar."
+- "How many candies do students 1 through 6 have in total?"
 
-#### The core idea
+The naive solution: ask every student one by one. For 8 students it's fine, but for 1 million students it takes forever.
 
-A BIT stores **partial sums** in a clever way. Each position `i` is responsible for accumulating the sum of exactly **`lowbit(i)`** preceding elements, where `lowbit(i) = i & (-i)` is the value of the lowest set bit of `i` in binary.
-
-```
-i (decimal) | i (binary) | lowbit(i) | Covers elements
-------------|------------|-----------|----------------
-      1     |    0001    |     1     | [1..1]
-      2     |    0010    |     2     | [1..2]
-      3     |    0011    |     1     | [3..3]
-      4     |    0100    |     4     | [1..4]
-      5     |    0101    |     1     | [5..5]
-      6     |    0110    |     2     | [5..6]
-      7     |    0111    |     1     | [7..7]
-      8     |    1000    |     8     | [1..8]
-```
-
-#### Visualization for array `[3, 2, 5, 1, 4, 6, 2, 7]`
+**The BIT trick:** instead of every student keeping only their own candies, some students are designated *"group leaders"* who secretly also keep a running total for a group of neighbors behind them. Now to answer "total from 1 to 6", you only ask 2–3 leaders instead of 6 students.
 
 ```mermaid
 graph TD
-    subgraph BIT["BIT (implicit tree over an array)"]
-        B8["BIT[8] = 30\ncovers [1..8]"]
-        B4["BIT[4] = 11\ncovers [1..4]"]
-        B6["BIT[6] = 10\ncovers [5..6]"]
-        B2["BIT[2] = 5\ncovers [1..2]"]
-        B3["BIT[3] = 5\ncovers [3..3]"]
-        B5["BIT[5] = 4\ncovers [5..5]"]
-        B7["BIT[7] = 2\ncovers [7..7]"]
-        B1["BIT[1] = 3\ncovers [1..1]"]
+    subgraph Classroom["Classroom — each jar covers a group"]
+        S8["Student 8\n30 candies total\nleads students 1-8"]
+        S4["Student 4\n11 candies total\nleads students 1-4"]
+        S6["Student 6\n10 candies\nleads students 5-6"]
+        S2["Student 2\n5 candies\nleads students 1-2"]
+        S3["Student 3\n5 candies\nonly themselves"]
+        S5["Student 5\n4 candies\nonly themselves"]
+        S7["Student 7\n2 candies\nonly themselves"]
+        S1["Student 1\n3 candies\nonly themselves"]
     end
 
-    B8 --> B4
-    B8 --> B6
-    B4 --> B2
-    B4 --> B3
-    B6 --> B5
-    B6 --> B7
-    B2 --> B1
+    S8 --> S4
+    S8 --> S6
+    S4 --> S2
+    S4 --> S3
+    S6 --> S5
+    S6 --> S7
+    S2 --> S1
 ```
 
-> BIT[8] = 30 is the total array sum, BIT[4] = 11 is the sum of the first 4 elements (3+2+5+1), and so on.
+> Students 1, 3, 5, 7 cover only themselves (odd numbers). Student 2 covers 2 students, student 4 covers 4, and student 8 covers all 8. The bigger the group, the fewer leaders you need to ask.
 
-#### How `query(i)` works — prefix sum [1..i]
+#### Who leads how many students?
 
-Walk backwards by **stripping** the lowest set bit at each step:
+Write each student's position in binary. The **last `1` on the right** tells you how big their group is:
+
+```
+Position 1 → binary:  000 1  ← last 1 has value 1  → leads 1 student  → covers [1..1]
+Position 2 → binary:  001 0  ← last 1 has value 2  → leads 2 students → covers [1..2]
+Position 3 → binary:  001 1  ← last 1 has value 1  → leads 1 student  → covers [3..3]
+Position 4 → binary:  010 0  ← last 1 has value 4  → leads 4 students → covers [1..4]
+Position 5 → binary:  010 1  ← last 1 has value 1  → leads 1 student  → covers [5..5]
+Position 6 → binary:  011 0  ← last 1 has value 2  → leads 2 students → covers [5..6]
+Position 7 → binary:  011 1  ← last 1 has value 1  → leads 1 student  → covers [7..7]
+Position 8 → binary:  100 0  ← last 1 has value 8  → leads 8 students → covers [1..8]
+```
+
+In code, `i & (-i)` extracts that value automatically:
+
+```python
+i = 6        #  0110 in binary
+-i = -6      #  1010 in two's complement
+i & (-i) = 2 #  0010  ← picks out just the last 1, which has value 2
+             #  so student 6 leads a group of 2
+```
+
+#### Querying "total from 1 to 7" — ask the right leaders
+
+Start at student 7 and keep jumping to the previous group leader until you reach 0:
 
 ```
 query(7):
-  sum += BIT[7]   → i = 7 (0111), lowbit = 1, i = 6
-  sum += BIT[6]   → i = 6 (0110), lowbit = 2, i = 4
-  sum += BIT[4]   → i = 4 (0100), lowbit = 4, i = 0 → stop
+  ask student 7  (covers only themselves)  → jump to 6
+  ask student 6  (covers students 5–6)     → jump to 4
+  ask student 4  (covers students 1–4)     → jump to 0, done!
 ```
 
-#### How `update(i, delta)` works
+3 questions instead of 7. Each jump strips the rightmost 1-bit: `i -= i & (-i)`.
 
-Walk forward by **adding** the lowest set bit at each step to notify all responsible nodes:
+#### Updating "student 3 gets +1 candy" — notify all their leaders
+
+Start at student 3 and keep jumping to the next leader that covers them:
 
 ```
 update(3, +1):
-  BIT[3] += 1   → i = 3 (0011), lowbit = 1, i = 4
-  BIT[4] += 1   → i = 4 (0100), lowbit = 4, i = 8
-  BIT[8] += 1   → i = 8, done (out of range)
+  update student 3  → jump to 4
+  update student 4  → jump to 8
+  update student 8  → done (out of classroom)
 ```
+
+Each jump adds the rightmost 1-bit: `i += i & (-i)`.
 
 #### Minimal implementation
 
 ```python
 class BIT:
     def __init__(self, n):
-        self.tree = [0] * (n + 1)
+        self.tree = [0] * (n + 1)      # one jar per student, 1-indexed
 
     def update(self, i, delta):
         while i < len(self.tree):
             self.tree[i] += delta
-            i += i & (-i)
+            i += i & (-i)              # jump to next responsible leader
 
-    def query(self, i):            # prefix sum [1..i]
-        s = 0
+    def query(self, i):                # total candies from student 1 to i
+        total = 0
         while i > 0:
-            s += self.tree[i]
-            i -= i & (-i)
-        return s
+            total += self.tree[i]
+            i -= i & (-i)             # jump to previous group leader
+        return total
 
-    def range_query(self, l, r):   # sum [l..r]
+    def range_query(self, l, r):      # total candies from student l to r
         return self.query(r) - self.query(l - 1)
 ```
 
-**When to use it?** When you need dynamic prefix sum queries (the array changes). If the array is static, a plain prefix sum array is enough.
+**When to use it?** Whenever you need fast range sums on a list that keeps changing. If the list never changes, a plain prefix sum array is simpler and equally fast.
 
 ---
 
@@ -404,21 +417,31 @@ Given an array `rating` of `n` soldiers where all ratings are unique, return the
 
 ### 💡 The Strategy: BIT for Left/Right Counts
 
-For each soldier `j` (as the middle element), we independently count how many elements to its left are smaller (`left_smaller`) and larger (`left_larger`), and similarly to its right (`right_smaller`, `right_larger`). The contribution of `j` as the middle is:
+Think of each soldier as a student standing in line. You want to count valid teams of 3: a short, medium, and tall student (or tall, medium, short) **in that left-to-right order**.
 
-> `left_smaller[j] × right_larger[j]`  (ascending teams) + `left_larger[j] × right_smaller[j]`  (descending teams)
+The key insight: **fix the middle student `j`** and count:
+- How many students to their **left** are shorter → `left_smaller`
+- How many students to their **right** are taller → `right_larger`
 
-#### The Step-by-Step Logic:
-1.  **BIT indexed by rating value** (1 to 10^5, all unique).
-2.  **Left pass (left → right):** Before inserting `rating[j]`:
-    *   `left_smaller[j]` = `query(rating[j] - 1)` — count of ratings already inserted that are smaller.
-    *   `left_larger[j]` = `j - query(rating[j])` — elements inserted so far minus those ≤ `rating[j]`.
-    *   Then insert `rating[j]`.
-3.  **Right pass (right → left):** Same idea with a fresh BIT, computing `right_smaller` and `right_larger`.
-4.  **Sum contributions** of every `j`.
+Each pair `(left_smaller × right_larger)` gives the number of valid ascending teams where `j` is the middle. Do the same for descending and sum everything up.
 
-**Why use a BIT?**  
-A brute-force $O(n^2)$ approach that, for each `j`, scans left and right would TLE for $n = 10^5$. The BIT reduces each left/right count to $O(\log M)$ where $M = 10^5$, giving overall $O(n \log M)$. The key difference from Count of Smaller Numbers After Self: here we index by **value** but make **two passes** to get both directions simultaneously.
+```
+rating = [2, 5, 3, 4, 1]
+                 ↑
+           j = 3 (rating 3)
+  left side: [2, 5] → left_smaller = 1 (only 2), left_larger = 1 (only 5)
+  right side: [4, 1] → right_larger = 1 (only 4), right_smaller = 1 (only 1)
+
+  ascending teams with j=3 as middle:  left_smaller × right_larger = 1 × 1 = 1  → team (2,3,4)
+  descending teams with j=3 as middle: left_larger  × right_smaller = 1 × 1 = 1  → team (5,3,1)
+```
+
+To count efficiently, the BIT is indexed by **rating value**. As you scan left to right, each student you've already visited gets inserted into the BIT. Then `query(rating[j] - 1)` instantly tells you how many already-inserted students have a lower rating — no need to loop through everyone.
+
+#### Step-by-step:
+1. **Left pass** (left → right): before inserting `j`, query the BIT to get `left_smaller[j]` and `left_larger[j]`, then insert `rating[j]`.
+2. **Right pass** (right → left): same idea with a fresh BIT to get `right_smaller[j]` and `right_larger[j]`.
+3. **Answer** = sum of `left_smaller[j] × right_larger[j] + left_larger[j] × right_smaller[j]` for every `j`.
 
 ---
 
@@ -436,20 +459,34 @@ Given an integer array `nums`, return the number of **reverse pairs**: pairs `(i
 
 ### 💡 The Strategy: BIT with Coordinate Compression
 
-The condition `nums[i] > 2 × nums[j]` prevents direct indexing because the query threshold `nums[i]/2` may not exist as a value in the array. We use **coordinate compression**: replace actual values with dense ranks, then use `bisect` to translate a threshold into a prefix rank count.
+Imagine students standing in a line, each holding a number. You want to count pairs `(i, j)` where student `i` is to the left of student `j` and **student i's number is more than double student j's number**.
 
-#### The Key Trick: Threshold Formula
-We want to count, for each `nums[i]`, how many elements to its right satisfy `2x < nums[i]`, i.e., `x ≤ ⌊(nums[i] − 1) / 2⌋`. This floor formula handles both positive and negative integers correctly (Python's floor division rounds toward negative infinity).
+The approach: scan right to left. For each student `i`, ask the BIT: *"how many students to my right have a number small enough?"* — then insert `i` into the BIT for future students to query.
 
-#### The Step-by-Step Logic:
-1.  **Coordinate compression:** Sort and deduplicate `nums` → `sorted_vals`. Map each value to a 1-based rank.
-2.  **Traverse right to left.** For each `nums[i]`:
-    *   **Query:** `threshold = (nums[i] - 1) // 2`. Use `bisect_right(sorted_vals, threshold)` to find how many compressed values satisfy `x ≤ threshold`. Query the BIT up to that rank.
-    *   **Update:** insert `rank[nums[i]]` into the BIT.
-3.  **Return the total count.**
+```
+nums = [1, 3, 2, 3, 1]
 
-**Why coordinate compression?**  
-`nums[i]` can reach ±2³¹, so a direct BIT indexed by value would need ~4 × 10⁹ cells — impractical. Compression maps only the `n` distinct values to ranks `[1..n]`, giving a BIT of size `n`. Unlike Count of Smaller Numbers After Self (where the query threshold is simply `nums[i] - 1`), here the multiplicative condition forces a non-trivial threshold that isn't guaranteed to be in `sorted_vals`, which is why `bisect` is essential.
+Scan right to left:
+  i=4, val=1 → BIT is empty, 0 pairs. Insert 1.
+  i=3, val=3 → need x where 3 > 2x → x ≤ 1. Query: how many inserted values ≤ 1? → 1 (the 1 we inserted). +1 pair. Insert 3.
+  i=2, val=2 → need x ≤ 0. Query: 0 pairs. Insert 2.
+  i=1, val=3 → need x ≤ 1. Query: how many inserted values ≤ 1? → 1. +1 pair. Insert 3.
+  i=0, val=1 → need x ≤ 0. Query: 0 pairs.
+
+Total = 2 ✓
+```
+
+**The problem:** values can be huge (up to ±2³¹), so you can't index the BIT directly by value — it would need billions of slots.
+
+**The fix — coordinate compression:** before starting, sort and rank all values. Replace each value with its rank (1, 2, 3...). Now the BIT only needs `n` slots instead of billions. When querying a threshold like `x ≤ 1`, use binary search (`bisect`) to find what rank that threshold maps to.
+
+#### Step-by-step:
+1. **Compress:** sort all unique values and assign each a rank from 1 to n.
+2. **Scan right to left.** For each `nums[i]`:
+   - Compute threshold `= (nums[i] - 1) // 2` (the largest value that satisfies `2x < nums[i]`).
+   - Use `bisect` to find the rank of that threshold, then query the BIT up to that rank.
+   - Insert the rank of `nums[i]` into the BIT.
+3. **Return the total count.**
 
 ---
 ## Segment Tree
