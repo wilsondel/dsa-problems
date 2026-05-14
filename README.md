@@ -288,6 +288,106 @@ By performing BFS on **buses** instead of individual stops, we significantly red
 ---
 ## Binary Indexed Tree (Fenwick Tree)
 
+### What is a BIT?
+
+Imagine you have a list of numbers and you constantly need to:
+1. **Update** the value at a position.
+2. **Query the sum** of a range of positions.
+
+With a plain array, updating is O(1) but summing a range is O(n). A BIT makes **both operations O(log n)**.
+
+#### The core idea
+
+A BIT stores **partial sums** in a clever way. Each position `i` is responsible for accumulating the sum of exactly **`lowbit(i)`** preceding elements, where `lowbit(i) = i & (-i)` is the value of the lowest set bit of `i` in binary.
+
+```
+i (decimal) | i (binary) | lowbit(i) | Covers elements
+------------|------------|-----------|----------------
+      1     |    0001    |     1     | [1..1]
+      2     |    0010    |     2     | [1..2]
+      3     |    0011    |     1     | [3..3]
+      4     |    0100    |     4     | [1..4]
+      5     |    0101    |     1     | [5..5]
+      6     |    0110    |     2     | [5..6]
+      7     |    0111    |     1     | [7..7]
+      8     |    1000    |     8     | [1..8]
+```
+
+#### Visualization for array `[3, 2, 5, 1, 4, 6, 2, 7]`
+
+```mermaid
+graph TD
+    subgraph BIT["BIT (implicit tree over an array)"]
+        B8["BIT[8] = 30\ncovers [1..8]"]
+        B4["BIT[4] = 11\ncovers [1..4]"]
+        B6["BIT[6] = 10\ncovers [5..6]"]
+        B2["BIT[2] = 5\ncovers [1..2]"]
+        B3["BIT[3] = 5\ncovers [3..3]"]
+        B5["BIT[5] = 4\ncovers [5..5]"]
+        B7["BIT[7] = 2\ncovers [7..7]"]
+        B1["BIT[1] = 3\ncovers [1..1]"]
+    end
+
+    B8 --> B4
+    B8 --> B6
+    B4 --> B2
+    B4 --> B3
+    B6 --> B5
+    B6 --> B7
+    B2 --> B1
+```
+
+> BIT[8] = 30 is the total array sum, BIT[4] = 11 is the sum of the first 4 elements (3+2+5+1), and so on.
+
+#### How `query(i)` works — prefix sum [1..i]
+
+Walk backwards by **stripping** the lowest set bit at each step:
+
+```
+query(7):
+  sum += BIT[7]   → i = 7 (0111), lowbit = 1, i = 6
+  sum += BIT[6]   → i = 6 (0110), lowbit = 2, i = 4
+  sum += BIT[4]   → i = 4 (0100), lowbit = 4, i = 0 → stop
+```
+
+#### How `update(i, delta)` works
+
+Walk forward by **adding** the lowest set bit at each step to notify all responsible nodes:
+
+```
+update(3, +1):
+  BIT[3] += 1   → i = 3 (0011), lowbit = 1, i = 4
+  BIT[4] += 1   → i = 4 (0100), lowbit = 4, i = 8
+  BIT[8] += 1   → i = 8, done (out of range)
+```
+
+#### Minimal implementation
+
+```python
+class BIT:
+    def __init__(self, n):
+        self.tree = [0] * (n + 1)
+
+    def update(self, i, delta):
+        while i < len(self.tree):
+            self.tree[i] += delta
+            i += i & (-i)
+
+    def query(self, i):            # prefix sum [1..i]
+        s = 0
+        while i > 0:
+            s += self.tree[i]
+            i -= i & (-i)
+        return s
+
+    def range_query(self, l, r):   # sum [l..r]
+        return self.query(r) - self.query(l - 1)
+```
+
+**When to use it?** When you need dynamic prefix sum queries (the array changes). If the array is static, a plain prefix sum array is enough.
+
+---
+
 ### Count Number of Teams (Medium)
 
 **Description**  
